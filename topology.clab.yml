@@ -1,0 +1,90 @@
+---
+# Lab: frr-cicd-demo
+# Description: Public demo — Containerlab + FRR OSPF/BFD + PyATS
+# Images      : frrouting/frr:latest, nicolaka/netshoot:latest
+# Use case    : Mini network validation pipeline — deploy lab -> pre_check -> post_check -> cleanup
+#
+# Topology:
+#
+#   host-left                              host-right
+#  192.168.10.10/24                       192.168.20.10/24
+#       eth1                                    eth1
+#        │                                       │
+#    eth2│                                   eth2│
+#  ┌──────────────┐                    ┌──────────────┐
+#  │  frr-rtr-01  │ eth1 ◄──────► eth1 │  frr-rtr-02  │
+#  │  10.0.0.1/32 │  10.0.12.0/30      │  10.0.0.2/32 │
+#  └──────────────┘  (OSPF + BFD)      └──────────────┘
+#
+# Prerequisites:
+#   docker pull frrouting/frr:latest
+#   docker pull nicolaka/netshoot:latest
+#   clab deploy -t topology.clab.yml
+
+name: frr-cicd-demo
+
+mgmt:
+  network: clab-mgmt-frr-cicd
+  ipv4-subnet: 172.20.35.0/24
+
+topology:
+  nodes:
+
+    # ─── Routeurs FRR ─────────────────────────────────────────────────────────
+    frr-rtr-01:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.35.11
+      binds:
+        - configs/frr-rtr-01/daemons:/etc/frr/daemons
+        - configs/frr-rtr-01/frr.conf:/etc/frr/frr.conf
+        - configs/frr-rtr-01/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.12.1/30 dev eth1
+        - ip addr add 192.168.10.1/24 dev eth2
+        - ip link set eth1 up
+        - ip link set eth2 up
+
+    frr-rtr-02:
+      kind: linux
+      image: frrouting/frr:latest
+      mgmt-ipv4: 172.20.35.12
+      binds:
+        - configs/frr-rtr-02/daemons:/etc/frr/daemons
+        - configs/frr-rtr-02/frr.conf:/etc/frr/frr.conf
+        - configs/frr-rtr-02/vtysh.conf:/etc/frr/vtysh.conf
+      exec:
+        - sysctl -w net.ipv4.ip_forward=1
+        - ip addr add 10.0.12.2/30 dev eth1
+        - ip addr add 192.168.20.1/24 dev eth2
+        - ip link set eth1 up
+        - ip link set eth2 up
+
+    # ─── Linux Hosts ──────────────────────────────────────────────────────────
+    host-left:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.35.21
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 192.168.10.10/24 dev eth1
+        - ip link set eth1 up
+        - ip route add 192.168.20.0/24 via 192.168.10.1
+
+    host-right:
+      kind: linux
+      image: nicolaka/netshoot:latest
+      mgmt-ipv4: 172.20.35.22
+      entrypoint: /bin/sleep
+      cmd: infinity
+      exec:
+        - ip addr add 192.168.20.10/24 dev eth1
+        - ip link set eth1 up
+        - ip route add 192.168.10.0/24 via 192.168.20.1
+
+  links:
+    - endpoints: ["frr-rtr-01:eth1", "frr-rtr-02:eth1"]
+    - endpoints: ["frr-rtr-01:eth2", "host-left:eth1"]
+    - endpoints: ["frr-rtr-02:eth2", "host-right:eth1"]

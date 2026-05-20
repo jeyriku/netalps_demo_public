@@ -1,0 +1,103 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PyATS Testbed — frr-cicd-demo
+#
+# Devices connect via `docker exec` (subprocess, not SSH).
+# Mgmt IPs and container names follow Containerlab naming:
+#   clab-{lab-name}-{node-name}
+#
+# Standalone usage:
+#   python tests/pre_check.py  --testbed tests/testbed.yml
+#   python tests/post_check.py --testbed tests/testbed.yml
+#
+# PyATS job usage:
+#   pyats run job tests/test_job.py --testbed-file tests/testbed.yml
+# ─────────────────────────────────────────────────────────────────────────────
+
+testbed:
+  name: frr-cicd-demo
+
+devices:
+
+  # ─── Routeurs FRR ───────────────────────────────────────────────────────────
+  frr-rtr-01:
+    alias: rtr01
+    os: linux
+    type: router
+    # Tests use docker exec (subprocess) — connections defined to
+    # satisfy the PyATS schema but device.connect() is NOT called.
+    connections:
+      mgmt:
+        protocol: ssh
+        ip: 172.20.35.11
+    credentials:
+      default:
+        username: root
+        password: ""
+    custom:
+      container: clab-frr-cicd-demo-frr-rtr-01
+      mgmt_ip: 172.20.35.11
+      loopback: 10.0.0.1
+      wan_ip: 10.0.12.1
+      lan: 192.168.10.0/24
+      peer_wan_ip: 10.0.12.2
+      peer_loopback: 10.0.0.2
+
+  frr-rtr-02:
+    alias: rtr02
+    os: linux
+    type: router
+    connections:
+      mgmt:
+        protocol: ssh
+        ip: 172.20.35.12
+    credentials:
+      default:
+        username: root
+        password: ""
+    custom:
+      container: clab-frr-cicd-demo-frr-rtr-02
+      mgmt_ip: 172.20.35.12
+      loopback: 10.0.0.2
+      wan_ip: 10.0.12.2
+      lan: 192.168.20.0/24
+      peer_wan_ip: 10.0.12.1
+      peer_loopback: 10.0.0.1
+
+  # ─── Linux Hosts ────────────────────────────────────────────────────────────
+  host-left:
+    alias: hleft
+    os: linux
+    type: host
+    connections:
+      mgmt:
+        protocol: ssh
+        ip: 172.20.35.21
+    credentials:
+      default:
+        username: root
+        password: ""
+    custom:
+      container: clab-frr-cicd-demo-host-left
+      mgmt_ip: 172.20.35.21
+      ip: 192.168.10.10
+      gw: 192.168.10.1
+      ping_target: 192.168.20.10
+
+  host-right:
+    alias: hright
+    os: linux
+    type: host
+    connections:
+      mgmt:
+        protocol: ssh
+        ip: 172.20.35.22
+    credentials:
+      default:
+        username: root
+        password: ""
+    custom:
+      container: clab-frr-cicd-demo-host-right
+      mgmt_ip: 172.20.35.22
+      ip: 192.168.20.10
+      gw: 192.168.20.1
+      ping_target: 192.168.10.10

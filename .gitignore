@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# PyATS logs & archives
+logs/
+*.log
+archive/
+
+# Containerlab runtime (généré au déploiement)
+clab-*/
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Configs sensibles (à ne jamais versionner)
+*.key
+*.pem
+secrets/
+
+# Reports
+*.html

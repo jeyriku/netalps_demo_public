@@ -1,0 +1,54 @@
+name: Lab Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate prerequisites
+        shell: bash
+        run: |
+          command -v docker
+          command -v containerlab
+          command -v python3
+
+      - name: Setup Python dependencies
+        shell: bash
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install pyats genie
+
+      - name: Pull public images
+        run: |
+          docker pull frrouting/frr:latest
+          docker pull nicolaka/netshoot:latest
+
+      - name: Deploy topology
+        run: |
+          containerlab deploy -t topology.clab.yml --reconfigure
+          sleep 20
+
+      - name: Run pre check
+        run: |
+          source .venv/bin/activate
+          python tests/pre_check.py --testbed tests/testbed.yml
+
+      - name: Run post check
+        run: |
+          source .venv/bin/activate
+          python tests/post_check.py --testbed tests/testbed.yml
+
+      - name: Cleanup topology
+        if: always()
+        run: |
+          containerlab destroy -t topology.clab.yml --cleanup || true
