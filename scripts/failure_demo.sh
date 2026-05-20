@@ -18,7 +18,7 @@
 #   - Be in the repository folder or set DEMO_DIR
 #
 # Usage:
-#   cd /path/to/netalps_demo_public
+#   cd /path/to/repository
 #   source /path/to/venv/bin/activate
 #   bash scripts/failure_demo.sh
 # ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ DEMO_DIR="${DEMO_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 TOPO="$DEMO_DIR/topology.clab.yml"
 TESTBED="$DEMO_DIR/tests/testbed.yml"
 CONTAINER_RTR02="clab-frr-cicd-demo-frr-rtr-02"
-BACKUP_CONF="$(mktemp /tmp/netalps-frr-rtr-02-backup.XXXXXX.conf)"
+BACKUP_CONF="$(mktemp /tmp/frr-rtr-02-backup.XXXXXX.conf)"
 BAD_CONF="$DEMO_DIR/tests/failure_scenario/frr-rtr-02/frr.conf"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'

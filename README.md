@@ -1,6 +1,6 @@
-# NetAlps Public Demo
+# Public Network CI Demo
 
-Public, anonymized copy of the original NetAlps demo.
+Public, anonymized network validation demo.
 
 This repository demonstrates a small network CI validation workflow with:
 - Containerlab
@@ -86,7 +86,7 @@ GitHub-hosted runners do not support this lab out of the box.
 ```bash
 git add .
 git commit -m "Initial public anonymized demo"
-git remote add origin git@github.com:<your-org-or-user>/netalps_demo_public.git
+git remote add origin git@github.com:<your-org-or-user>/<repo-name>.git
 git push -u origin main
 ```
 
